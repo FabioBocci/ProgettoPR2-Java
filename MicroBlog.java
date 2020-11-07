@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class MicroBlog implements SocialNetwork {
 /**
- *          AF: ELEMENTI
+ *          AF: <ListOfUser, ListOfPost , Map <User , Set<Followers> >
  *          RI: limitazioni
  */
 
