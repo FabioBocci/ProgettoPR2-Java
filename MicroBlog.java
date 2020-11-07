@@ -8,8 +8,8 @@ import java.util.Set;
 
 public class MicroBlog implements SocialNetwork {
 /**
- *          AF:
- *          RI:
+ *          AF: ELEMENTI
+ *          RI: limitazioni
  */
 
     private List<String> ListOfUser;
