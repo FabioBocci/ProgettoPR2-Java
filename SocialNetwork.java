@@ -86,8 +86,9 @@ public interface SocialNetwork {
      * @return ListOfPostBetweenDate ⊂ ListOfPost t.c. (forall Post ps in ListOfPostBetweenDate => (before <= ps.dataCreazione <= post ) )
      * @throws EmptyNetworkException if ListOfPost.isEmpty()
      * @throws IllegalArgumentException if before > post
+     * @throws NullPointerException if before == null or post == null
      */
-    public List<Post> betweenDate(Date before, Date post)throws EmptyNetworkException,IllegalArgumentException;
+    public List<Post> betweenDate(Date before, Date post)throws EmptyNetworkException,IllegalArgumentException,NullPointerException;
 
     //restituisce una lista dei post che sono stati pubblicati dopo la data in input
     public List<Post> postDate(Date before)throws EmptyNetworkException,NullPointerException;
