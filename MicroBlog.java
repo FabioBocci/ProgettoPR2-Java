@@ -1,10 +1,12 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class MicroBlog implements SocialNetwork {
 /**
@@ -16,6 +18,7 @@ public class MicroBlog implements SocialNetwork {
     private List<Post> ListOfPost;
     //private Map<String, Set<String>> MapOfFollowers;
     private List<List<String>> FollowersList;
+    
 
     public MicroBlog()
     {
@@ -41,6 +44,7 @@ public class MicroBlog implements SocialNetwork {
             Set<String> setstr = new HashSet<>(FollowersList.get(ListOfUser.indexOf(author)));
             map.put(author, setstr);
         }
+        
         return map;
     }
 
@@ -78,6 +82,8 @@ public class MicroBlog implements SocialNetwork {
             influencers.add(ListOfUser.get(indexofmax));
             
         }
+        //Possibile soluzione con gli Stream ------------------------Da Controllare il funzionamento------------------//
+        //Stream<Map.Entry<String,Integer>> sorted = map.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue()));
         return influencers;
     }
 
@@ -106,50 +112,149 @@ public class MicroBlog implements SocialNetwork {
     }
 
     @Override
-    public Set<String> getMentionedUsers(List<Post> ps) throws EmptyNetworkException, NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+    public Set<String> getMentionedUsers(List<Post> ps) throws EmptyNetworkException, NullPointerException 
+    {
+        if(this.ListOfUser.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(ps== null)throw new NullPointerException("getMentionedUsers got a Null");
+        Set<String> mentionedUsers = new HashSet<>();
+        int i;
+        boolean found;
+        for(String User : ListOfUser)
+        {
+            if(!mentionedUsers.contains(User))
+            {
+                found = false;
+                i=0;
+                while(!found && i < ps.size())
+                {
+                    found=ps.get(i).checkWord(User);
+                }
+                if(found) mentionedUsers.add(User);
+            }
+        }
+
+        return mentionedUsers;
     }
 
     @Override
-    public List<Post> writtenBy(String username) throws EmptyNetworkException, NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Post> writtenBy(String username) throws EmptyNetworkException, NullPointerException 
+    {
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(username == null) throw new NullPointerException();
+        List<Post> ps = new ArrayList<>();
+        for (Post p : ListOfPost)
+        {
+            if(p.getAuthor()==username)
+                ps.add(p);
+        }
+
+        return ps;
     }
 
     @Override
-    public List<Post> writtenBy(List<Post> ps, String username) throws NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Post> writtenBy(List<Post> ps, String username) throws NullPointerException 
+    {
+        if(ps == null || username == null) throw new NullPointerException();
+        List<Post> p = new ArrayList<>();
+        for (Post post : ps) {
+            if(post.getAuthor()==username)
+                p.add(post);
+        }
+        return p;
     }
 
     @Override
-    public List<Post> containing(List<String> words) throws EmptyNetworkException, NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Post> containing(List<String> words) throws EmptyNetworkException, NullPointerException 
+    {
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network empty");
+        if(words == null) throw new NullPointerException();
+        List<Post> tempList = new ArrayList<>(ListOfPost);
+        List<Post> returnList = new ArrayList<>(ListOfPost);
+        int i;
+        boolean found;
+
+        for (String word : words) {
+            i=0;
+            found=false;
+            while(!found && i<tempList.size())
+            {
+                if(tempList.get(i).checkWord(word))
+                {
+                    found=true;
+                    tempList.remove(i);
+                }
+            }
+        }
+        returnList.removeAll(tempList);
+
+        return returnList;
     }
 
     @Override
-    public List<Post> betweenDate(Date before, Date post) throws EmptyNetworkException, IllegalArgumentException {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Post> betweenDate(Date before, Date post) throws EmptyNetworkException, IllegalArgumentException,NullPointerException {
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Empty Network");
+        if(before == null || post == null)throw new NullPointerException();
+        if(before.getTime() > post.getTime()) throw new IllegalArgumentException("Date sbagliate");
+
+        List<Post> lstPostDate = new ArrayList<>();
+        for(Post pst : ListOfPost)
+        {
+            if(before.getTime()<pst.getDate().getTime() && pst.getDate().getTime()< post.getTime())
+                lstPostDate.add(pst);
+        }
+        return lstPostDate;
     }
 
     @Override
     public List<Post> postDate(Date before) throws EmptyNetworkException, NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Empty Network");
+        if(before == null) throw new NullPointerException();
+
+        List<Post> lstPostDate = new ArrayList<>();
+        for(Post pst : ListOfPost)
+        {
+            if(before.getTime()<pst.getDate().getTime())
+                lstPostDate.add(pst);
+        }
+        return lstPostDate;
+
     }
 
     @Override
-    public List<Post> removePosts(List<Post> ps) throws EmptyNetworkException, NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Post> removePosts(List<Post> ps) throws EmptyNetworkException, NullPointerException 
+    {
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(ps== null) throw new NullPointerException();
+        boolean allfound = false;
+        if(ListOfPost.containsAll(ps)) allfound= true;
+
+        if(allfound)
+        {
+            this.ListOfPost.removeAll(ps);
+            return new ArrayList<>();
+        }
+        else{
+
+            for(Post p : ps)
+            {
+                if(ListOfPost.contains(p))
+                {
+                    ListOfPost.remove(p);
+                    ps.remove(p);
+                }
+            }
+            return ps;
+        }
+
     }
 
     @Override
     public boolean removePost(Post ps) throws EmptyNetworkException, NullPointerException {
-        // TODO Auto-generated method stub
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException();
+        if(ps == null) throw new NullPointerException();
+
+        if(ListOfPost.remove(ps))
+            return true;
         return false;
     }
 
