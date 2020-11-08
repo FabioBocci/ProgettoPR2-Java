@@ -6,11 +6,14 @@ import java.util.Set;
 public interface SocialNetwork {
 /**
  *              Overview: gestore di una rete sociale, contenenti i Post degli utenti. la lista delle persone che seguono ogni utente.....
- *              TE: <ListOfPost , <User , ListOfFollowers_User> as MapOfFollowers , ListOfUser  > t.c.
- *                  ListOfPost != Null AND ListOfUser != Null AND MapOfFollowers != Null
+ *              TE: <ListOfPost , ListOfUser> AND f : user -> FollowersList t.c.
+ *                  (user ∈ ListOfUser => f(user) = FollowersList ⊂ ListOfUser) AND
+ *                  ListOfPost != Null AND ListOfUser != Null AND 
+ *                  (ListOfPost = {Post_1, Post_2, Post_3.......Post_n}) AND
+ *                  (ListOfUser = {User_1, User_2, User_3.......User_n}) AND
  *                  (forall ps1,ps2 in ListOfPost | ps1 != ps2 => ps1.ID != ps2.ID)
  *                  (forall Us1,Us2 in ListOfUser | Us1 != Us2 => Us1.Name != Us2.Name)
- *                  (forall users in ListOfUser => MapOfFollowers.keys().contains(users) AND MapOfFollowers.getValue(user) != Null )
+ *                  (forall user  in ListOfUser => f(user) != Null)
  * 
  * 
  */
@@ -18,7 +21,7 @@ public interface SocialNetwork {
     /**
      * 
      * @param ps != Null
-     * @return  MapGuessFollowers ⊂ MapOfFollowers t.c. (foreach User in MapGuessFollowers.Keys() => User in {ps1.Autore, ps2.Autore,....psn.Autore} AND MapGuessFollowers.getValue(User) == MapOfFollowres.getValue(User))
+     * @return Map <User,FolloerwsList> t.c. (Map.getKeys() = {ps_1.Autore, ps_2.Autore....ps_n.Autore} AND Map.getValue(User) = f(User))
      * @throws NullPointerException if ps == Null 
      *          (Eccezione fornita da Java)
      */
@@ -26,7 +29,7 @@ public interface SocialNetwork {
 
     //restituisce una lista di tutti gli influencers in ordire decrescente
     /**
-     * @return  newListOfUser == MapOfFollowers.getKeysOrderBy(MapOfFollowers.values())
+     * @return  newListOfUser = {User_1, User_2....User_n} t.c. (forall User_(i),User_(i+1) => #f(User_(i) >= #f(User_(i+1)) )
      * @throws EmptyNetworkException if ListOfUsers.isEmpty()
      */
     public List<String> influencers()throws EmptyNetworkException;
@@ -124,10 +127,10 @@ public interface SocialNetwork {
     //restituisce una lista di tutti gli utenti che seguono username
     /**
      * @param username != Null
-     * @return ListOfUserFollowers ⊂ ListOfUser t.c. (forall User in ListOfUserFollowers => User in ListOfUser.get(username).ListOfFollowers)
+     * @return f(username)
      * @throws EmptyNetworkException if ListOfUser.isEmpty()
      * @throws NullPointerException if username == Null
-     * @throws IllegalArgumentException if (Forall User us in ListOfUser => us.Autore != username)
+     * @throws IllegalArgumentException if (Forall User us in ListOfUser => us != username)
      */
     public List<String> followers(String username)throws EmptyNetworkException, NullPointerException,IllegalArgumentException;
 
