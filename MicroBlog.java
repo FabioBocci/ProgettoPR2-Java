@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +19,7 @@ public class MicroBlog implements SocialNetwork {
     private List<Post> ListOfPost;
     //private Map<String, Set<String>> MapOfFollowers;
     private List<List<String>> FollowersList;
-    
+
 
     public MicroBlog()
     {
@@ -259,15 +260,34 @@ public class MicroBlog implements SocialNetwork {
     }
 
     @Override
-    public void removePostsbyAuthor(String username)
-            throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
+    public boolean removePostsbyAuthor(String username)throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(username == null) throw new NullPointerException();
+        boolean foundOne = false;
+
+        for(Post pst : ListOfPost)
+        {
+            if(pst.getAuthor()==username)
+            {
+                foundOne=true;
+                ListOfPost.remove(pst);
+            }
+        }
+        if(foundOne)
+            return true;
+        
+        throw new IllegalArgumentException("User Don't Found");
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public List<String> followers(String username)
-            throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
+    public List<String> followers(String username)throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
+        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(username == null) throw new NullPointerException();
+
+        
+
         // TODO Auto-generated method stub
         return null;
     }
@@ -294,6 +314,17 @@ public class MicroBlog implements SocialNetwork {
     public void createUser(String User) throws NullPointerException, IllegalArgumentException {
         // TODO Auto-generated method stub
 
+    }
+    
+}
+
+
+class sortListBySize implements Comparator<List<?>>
+{
+    @Override
+    public int compare(List<?> o1, List<?> o2) {
+
+        return o1.size()-o2.size();
     }
     
 }
