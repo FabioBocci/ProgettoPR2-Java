@@ -118,12 +118,13 @@ public interface SocialNetwork {
     /**
      * @param username != Null
      * @modify this.ListOfPost
-     * @effects  PRE(this.ListOfPost) - pst = POST(this.ListOfPost)   {ps in pst => ListOfPost.get(ps).Autore == Username}
+     * @return True if removed at least one post from the list of post else throw an exception
+     * @effects  PRE(this.ListOfPost) - pst = POST(this.ListOfPost)   {forall ps in pst => ListOfPost.get(ps).Autore == Username}
      * @throws EmptyNetworkException if ListOfPost.isEmpty()
      * @throws NullPointerException if username == Null
      * @throws IllegalArgumentException if (Forall Post ps in ListOfPost => ps.Autore != username)
      */
-    public void removePostsbyAuthor(String username)throws EmptyNetworkException, NullPointerException,IllegalArgumentException;
+    public boolean removePostsbyAuthor(String username)throws EmptyNetworkException, NullPointerException,IllegalArgumentException;
 
     //restituisce una lista di tutti gli utenti che seguono username
     /**
