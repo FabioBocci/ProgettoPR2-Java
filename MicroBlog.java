@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.Collections;
+
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
+
 
 public class MicroBlog implements SocialNetwork {
 /**
@@ -15,9 +15,10 @@ public class MicroBlog implements SocialNetwork {
  *          RI: limitazioni
  */
 
-    private List<String> ListOfUser;
+    private List<String> ListOfUser;            //si potrebbe eliminare essendo ListOfUser == MapOfFollowers.keySet()
     private List<Post> ListOfPost;
-    //private Map<String, Set<String>> MapOfFollowers;
+    private Map<String, Set<String>> MapOfFollowers;
+    private Map<String , Integer> NumOfFollowers;
     private List<List<String>> FollowersList;
 
 
@@ -25,7 +26,7 @@ public class MicroBlog implements SocialNetwork {
     {
         this.ListOfPost = new ArrayList<>();
         this.ListOfUser = new ArrayList<>();
-        //this.MapOfFollowers = new LinkedHashMap<>();
+        this.MapOfFollowers = new HashMap<>();
         this.FollowersList = new ArrayList<>();
     }
 
@@ -33,19 +34,21 @@ public class MicroBlog implements SocialNetwork {
     public Map<String, Set<String>> guessFollowers(List<Post> ps) throws NullPointerException 
     {
         if(ps == null) throw new NullPointerException("Passato parametro Null a guessFollowers");
+        Set<String> authorSet = new HashSet<>();
 
-        ArrayList<String> authors = new ArrayList<String> ();
         for (Post post : ps) 
         {
-            authors.add(post.getAuthor());    
+            authorSet.add(post.getAuthor());    
         }
         Map<String , Set<String>> map = new HashMap<>();
 
-        for (String author : authors) {
-            Set<String> setstr = new HashSet<>(FollowersList.get(ListOfUser.indexOf(author)));
-            map.put(author, setstr);
+        for( String author : authorSet)
+        {
+            if(MapOfFollowers.keySet().contains(author))
+            {
+                map.put(author, MapOfFollowers.get(author));
+            }   
         }
-        
         return map;
     }
 
@@ -54,6 +57,7 @@ public class MicroBlog implements SocialNetwork {
     public List<String> influencers() throws EmptyNetworkException              
     {
         if(ListOfUser.isEmpty()) throw new EmptyNetworkException("Network Empty");
+
         List<Integer> mp= new ArrayList<Integer>();
         List<String> influencers = new ArrayList<>();
         //= new ArrayList<String>(this.ListOfUser);
@@ -277,8 +281,6 @@ public class MicroBlog implements SocialNetwork {
             return true;
         
         throw new IllegalArgumentException("User Don't Found");
-        // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -286,9 +288,11 @@ public class MicroBlog implements SocialNetwork {
         if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(username == null) throw new NullPointerException();
 
+        List<String> lstFollowers = new ArrayList<>();
+
         
 
-        // TODO Auto-generated method stub
+
         return null;
     }
 
