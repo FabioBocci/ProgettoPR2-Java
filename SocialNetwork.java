@@ -134,7 +134,7 @@ public interface SocialNetwork {
      * @throws NullPointerException if username == Null
      * @throws IllegalArgumentException if (Forall User us in ListOfUser => us != username)
      */
-    public List<String> followers(String username)throws EmptyNetworkException, NullPointerException,IllegalArgumentException;
+    public Set<String> followers(String username)throws EmptyNetworkException, NullPointerException,IllegalArgumentException;
 
     //inserisce un utente nei followers di un altro
     /**
@@ -163,7 +163,7 @@ public interface SocialNetwork {
      * @modify this.ListOfPost
      * @effects POST(ListOfPost) = PRE(ListOfPost) ∪ ps
      * @throws NullPointerException if ps == Null
-     * @throws IllegalArgumentException if ListOfPost.contain(ps) == True
+     * @throws IllegalArgumentException if ListOfPost.contain(ps) == True OR ListOfPost.IDlist.contains(ps.ID)
      */
     public void publicatePost(Post ps)throws NullPointerException,IllegalArgumentException;
 
