@@ -7,19 +7,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 
 public class MicroBlog implements SocialNetwork {
 /**
- *          AF: <ListOfUser, ListOfPost , Map <User , Set<Followers> >
- *          RI: limitazioni
+ *          AF: <ListOfUser, ListOfPost , MapOfFollowers , NumOfFollowers >
+ *          RI: ListOfUser != Null AND ListOfPost != Null AND MapOfFollowers != Null AND NumOfFollowers != Null AND
+ *              (forall Post in ListOfPost => Post != Null) AND
+ *              (forall User in ListOfUser => User != Null) AND
+ *              (forall pst_1, pst_2 in ListOfPost | pst_1 != pst_2 => pst_1.getID() !=pst_2.getID()) AND
+ *              (forall usr_1,usr_2 in ListOfUser | usr_1 != usr_2 => usr_1.Name != usr_2.Name)
+ *              (forall User in ListOfUser => MapOfFollowers.get(User) != Null AND NumOfFollowers.get(User)>=0 AND MapOfFollowers.get(User).size() == NumOfFollowers.get(User)) AND
  */
 
-    private List<String> ListOfUser;            //si potrebbe eliminare essendo ListOfUser == MapOfFollowers.keySet() prova scritta
+    private List<String> ListOfUser;
     private List<Post> ListOfPost;
     private Map<String, Set<String>> MapOfFollowers;
     private Map<String , Integer> NumOfFollowers;
-    private List<List<String>> FollowersList;
 
 
     public MicroBlog()
@@ -27,7 +32,7 @@ public class MicroBlog implements SocialNetwork {
         this.ListOfPost = new ArrayList<>();
         this.ListOfUser = new ArrayList<>();
         this.MapOfFollowers = new HashMap<>();
-        this.FollowersList = new ArrayList<>();
+        this.NumOfFollowers = new HashMap<>();
     }
 
     @Override
@@ -52,44 +57,17 @@ public class MicroBlog implements SocialNetwork {
         return map;
     }
 
-    //---------------------Da controllare----------------------------// 
+
     @Override
     public List<String> influencers() throws EmptyNetworkException              
     {
         if(ListOfUser.isEmpty()) throw new EmptyNetworkException("Network Empty");
 
-        List<Integer> mp= new ArrayList<Integer>();
-        List<String> influencers = new ArrayList<>();
-        //= new ArrayList<String>(this.ListOfUser);
-        //influencers.sort();
+        ValueComparator bvc = new ValueComparator(NumOfFollowers);
+        TreeMap<String,Integer> sorted_map_by_value = new TreeMap<String, Integer>(bvc);    //la classe TreeMap esegue un ordinamento delle chiavi tramite il Comparator passato alla creazione
+        sorted_map_by_value.putAll(NumOfFollowers);         //all'inserimento verranno tutti ordinati
 
-        int max=0;
-        int indexofmax;
-
-        for (List<String> followers : FollowersList) 
-        {
-            mp.add(followers.size());
-            
-        }
-        for(int i=0; i< ListOfUser.size() ;i++ )
-        {
-            max=0;
-            for (int maxi : mp) 
-            {
-                if(maxi>max)
-                {
-                    max=maxi;
-                }
-            }
-            indexofmax = mp.indexOf(max);
-            mp.set(indexofmax,-1);
-
-            influencers.add(ListOfUser.get(indexofmax));
-            
-        }
-        //Possibile soluzione con gli Stream ------------------------Da Controllare il funzionamento------------------//
-        //Stream<Map.Entry<String,Integer>> sorted = map.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue()));
-        return influencers;
+       return new ArrayList<String>(sorted_map_by_value.keySet());
     }
 
     @Override
@@ -109,6 +87,7 @@ public class MicroBlog implements SocialNetwork {
                 while(!found && i < ListOfPost.size())
                 {
                     found=ListOfPost.get(i).checkWord(user);
+                    i++;
                 }
                 if(found) mentionedUser.add(user);
             }
@@ -133,6 +112,7 @@ public class MicroBlog implements SocialNetwork {
                 while(!found && i < ps.size())
                 {
                     found=ps.get(i).checkWord(User);
+                    i++;
                 }
                 if(found) mentionedUsers.add(User);
             }
@@ -284,51 +264,103 @@ public class MicroBlog implements SocialNetwork {
     }
 
     @Override
-    public List<String> followers(String username)throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
+    public Set<String> followers(String username)throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
         if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(username == null) throw new NullPointerException();
+        if(!MapOfFollowers.keySet().contains(username)) throw new IllegalArgumentException("user non presente");
 
-        List<String> lstFollowers = new ArrayList<>();
-
-        
-
-
-        return null;
+        return new HashSet<>(MapOfFollowers.get(username));
     }
 
     @Override
     public boolean addFollower(String author, String username) throws IllegalArgumentException, NullPointerException {
-        // TODO Auto-generated method stub
-        return false;
+        if(author == null || username == null) throw new  NullPointerException();
+        if(author.equals(username)) throw new IllegalArgumentException("Nomi uguali, un utente non puo auto-seguirsi");
+        if(!ListOfUser.contains(author)) throw new IllegalArgumentException("Autore non presente");
+
+        if(!ListOfUser.contains(username)) createUser(username); //creo l'utente se non gia presente
+
+        if(MapOfFollowers.get(author).contains(username))
+            return false;
+        
+        MapOfFollowers.get(author).add(username);
+        NumOfFollowers.put(author, NumOfFollowers.get(author)+1);
+        return true;
     }
 
     @Override
     public Post createPost(String author, String Text) throws IllegalArgumentException, NullPointerException {
-        // TODO Auto-generated method stub
-        return null;
+        if(author == null || Text == null) throw new NullPointerException();
+        if(Text.length()>140) throw new IllegalArgumentException("Lungezza del testo troppo lunga");
+        Set<Integer> setID = new HashSet<>();
+        int ID = 1;
+        for(Post ps : ListOfPost)
+        {
+            setID.add(ps.getIDPost());
+        }
+        
+        while (setID.contains(ID)) ID = (int) Math.random();
+
+        Post pst = new SimplePost(author, ID);
+        pst.changeText(Text);
+
+        return pst;
     }
 
     @Override
-    public void publicatePost(Post ps) throws NullPointerException, IllegalArgumentException {
-        // TODO Auto-generated method stub
+    public void publicatePost(Post ps) throws NullPointerException, IllegalArgumentException 
+    {
+        if(ps == null) throw new NullPointerException();
+        if(ListOfPost.contains(ps)) throw new  IllegalArgumentException("Post gia presente");
+        Set<Integer> setID = new HashSet<>();
+     
+        for(Post pst : ListOfPost)
+        {
+            setID.add(pst.getIDPost());
+        }
+        
+        if(setID.contains(ps.getIDPost())) throw new  IllegalArgumentException("ID del post gia presente");
+
+        ListOfPost.add(ps);
 
     }
 
     @Override
-    public void createUser(String User) throws NullPointerException, IllegalArgumentException {
-        // TODO Auto-generated method stub
+    public void createUser(String User) throws NullPointerException, IllegalArgumentException 
+    {
+        if(User == null) throw new NullPointerException();
+        if(ListOfUser.contains(User)) throw new IllegalArgumentException("Utente gia presente");
+
+        ListOfUser.add(User);
+        MapOfFollowers.put(User, new HashSet<String>());
+        NumOfFollowers.put(User,0);
+
 
     }
     
 }
 
+class ValueComparator implements Comparator<String> {
+    Map<String, Integer> base;
 
-class sortListBySize implements Comparator<List<?>>
-{
-    @Override
-    public int compare(List<?> o1, List<?> o2) {
-
-        return o1.size()-o2.size();
+    public ValueComparator(Map<String, Integer> base) {
+        this.base = base;
     }
-    
+
+    public int compare(String a, String b) {
+        if (base.get(a) >= base.get(b)) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
 }
+//era possibile farlo anche con MapOfFollowers <String , Set<String>> nello stesso modo solo che nella compare doveva essere modificata cosi:
+/**
+ * public int compare(String a, String b) {
+        if (base.get(a).size() >= base.get(b).size()) {
+            return 1;
+        } else {
+            return -1;
+        }
+ */
