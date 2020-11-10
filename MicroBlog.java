@@ -15,7 +15,7 @@ public class MicroBlog implements SocialNetwork {
  *          RI: limitazioni
  */
 
-    private List<String> ListOfUser;            //si potrebbe eliminare essendo ListOfUser == MapOfFollowers.keySet()
+    private List<String> ListOfUser;            //si potrebbe eliminare essendo ListOfUser == MapOfFollowers.keySet() prova scritta
     private List<Post> ListOfPost;
     private Map<String, Set<String>> MapOfFollowers;
     private Map<String , Integer> NumOfFollowers;
