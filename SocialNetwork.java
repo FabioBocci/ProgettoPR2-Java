@@ -179,7 +179,7 @@ public interface SocialNetwork {
 }
 
 
-class EmptyNetworkException extends Exception
+class EmptyNetworkException extends RuntimeException
 {
     public EmptyNetworkException()
     {
