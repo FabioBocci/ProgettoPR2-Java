@@ -1,3 +1,5 @@
+import java.util.List;
+
 public interface ProtectedSocialNetwork extends SocialNetwork
 {
 /**
@@ -15,4 +17,40 @@ public interface ProtectedSocialNetwork extends SocialNetwork
  * 
  *                  (froall word in ListOfBannedWord => forall post in ListOfPost | post.getText().contains(word) == False )
  */
+    //Controlla che il post dato in input rispetti i vincoli sul contenuto (non abbia parole bannate)
+    public boolean checkPost(Post ps)throws NullPointerException;
+    //controlla che i posts dati in input rispettino i voncoli e restituisce una lista tale che rispettino i vincoli del Social network
+    public List<Post> checkPosts(List<Post> pst)throws NullPointerException;
+
+    //restiuisce una copia della lista delle parole bannate
+    public List<String> getBannedWords()throws EmptyNetworkException;
+    //aggiorna la lista delle parole bannate con quella data in input
+    public boolean setBannedWords(List<String> pst)throws NullPointerException,IllegalArgumentException;
+
+    //aggiunge la parola Word alla lista delle parole bannate
+    public boolean addBannedWord(String Word)throws NullPointerException;
+
+    //rimuove una parola dalla listad delle parole bannate
+    public boolean removeBannedWord(String Word)throws NullPointerException;
+
+    //overide del metodo publicate post di SocialNetwork
+    public void publicatePost(Post ps) throws NullPointerException, IllegalArgumentException ,IllegalWordsException;
+    //overide del metodo creare post di SocialNetwork
+    public Post createPost(String author, String Text) throws IllegalArgumentException, NullPointerException,IllegalWordsException;
+
+
+}
+
+
+
+class IllegalWordsException extends RuntimeException{
+    public IllegalWordsException(String word)
+    {
+        super(word);
+    }
+
+    public IllegalWordsException()
+    {
+        super();
+    }
 }
