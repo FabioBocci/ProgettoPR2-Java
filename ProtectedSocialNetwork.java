@@ -18,14 +18,39 @@ public interface ProtectedSocialNetwork extends SocialNetwork
  *                  (froall word in ListOfBannedWord => forall post in ListOfPost | post.getText().contains(word) == False )
  */
     //Controlla che il post dato in input rispetti i vincoli sul contenuto (non abbia parole bannate)
+    /**
+     * 
+     * @param ps != Null
+     * @return True if (not Exists word in ListOfBannedWord | ps.getText().contain(word) == True ) else False
+     * @throws NullPointerException if( ps == Null)
+     */
     public boolean checkPost(Post ps)throws NullPointerException;
+
     //controlla che i posts dati in input rispettino i voncoli e restituisce una lista tale che rispettino i vincoli del Social network
+    /**
+     * 
+     * @param pst != Null AND ({pst_1, pst_2....pst_n} | pst_i !=  Null)
+     * @return  ListOfPostChecked = {Post in pst | checkPost(Post) == True}
+     * @throws NullPointerException if( pst == Null OR Exists Post p in pst | p == Null)
+     */
     public List<Post> checkPosts(List<Post> pst)throws NullPointerException;
 
     //restiuisce una copia della lista delle parole bannate
+    /**
+     * 
+     * @return  clone(ListOfBannedWord)
+     * @throws EmptyNetworkException if(ListOfBannedWord.isEmpty())
+     */
     public List<String> getBannedWords()throws EmptyNetworkException;
+
     //aggiorna la lista delle parole bannate con quella data in input
-    public boolean setBannedWords(List<String> pst)throws NullPointerException,IllegalArgumentException;
+    /**
+     * 
+     * @param words != Null AND ({words_1, words_2....words_n} | words_i !=  Null)
+     * @return  ListOfPostBanned is the list of post that contain one or more words in the new list, and got removed from this.ListOfPost
+     * @throws NullPointerException If words == Null or contain null 
+     */
+    public List<Post> setBannedWords(List<String> words)throws NullPointerException;
 
     //aggiunge la parola Word alla lista delle parole bannate
     public boolean addBannedWord(String Word)throws NullPointerException;
