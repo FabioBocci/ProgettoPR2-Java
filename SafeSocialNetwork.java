@@ -117,9 +117,9 @@ public class SafeSocialNetwork implements ProtectedSocialNetwork {
     }
 
     @Override
-    public boolean setBannedWords(List<String> pst) throws NullPointerException, IllegalArgumentException {
+    public List<Post> setBannedWords(List<String> pst) throws NullPointerException, IllegalArgumentException {
         // TODO Auto-generated method stub
-        return false;
+        return null;
     }
 
     @Override
