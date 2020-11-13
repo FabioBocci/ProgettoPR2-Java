@@ -16,9 +16,10 @@ public class SimplePost implements Post
     {
         this(Author, ID, new Date(),Text);
     }
-    public SimplePost(String Author,int ID, Date date,String txt) throws IllegalArgumentException
+    public SimplePost(String Author,int ID, Date date,String txt) throws IllegalArgumentException, NullPointerException
     {
         if(txt.length() > 140)throw new IllegalArgumentException();
+        if(Author == null|| date == null) throw new NullPointerException();
         this.ID_Post=ID;
         this.Author=Author;
         this.Text= new String(txt);
