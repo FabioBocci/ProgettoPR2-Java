@@ -4,7 +4,7 @@ public interface Post
 {
 /**
  *          Overview: Tipo di dato astratto POST, con relative informazioni come: ID, Autore, Testo, DataCreazione
- *          OSS:La struttura è mutable poichè penso che il creatore del post o chi lo gestisce possa modificarlo in un secondo momento
+ *          i Post sono Immutable dopo la loro creazione
  * 
  *          TE: <ID_Post, Autore, Text, DataCreazione>
  * 
@@ -12,15 +12,28 @@ public interface Post
 
     /**
      * 
-     * @param newText != Null AND newText.lenght <= 140
-     * @return True if SUCCES else throws an exception
-     * @effect post(this.Text) = newText
-     * @throws NullPointerException if newText = Null
-     *          (Eccezione fornita da Java)
-     * @throws IllIllegalArgumentException if newText.leght > 140
-     *          (Eccezione fornita da Java)
+     * @param Author != Null
+     * @param Text  Text.leght() < 141 AND Text != Null
+     * @param ID 
+     * @return a new Post with Post.getAuthor() == Author AND Post.getText() == Text AND Post.getID() == ID
+     * @throws NullPointerException if Author == Null OR Text == Null
+     * @throws IllegalArgumentException if Text.leght() > 140
      */
-    public boolean changeText(String newText)throws NullPointerException,IllegalArgumentException;     
+    public Post createNewPost(String Author,String Text,int ID)throws NullPointerException,IllegalArgumentException;
+
+    /**
+     * 
+     * @return clone(this.Post)
+     */
+    public Post cloneThis();
+
+    /**
+     * 
+     * @param p != Null
+     * @return  True if this.Post contain the same information of p else False
+     * @throws NullPointerException if p == Null
+     */
+    public boolean isEqual(Post p)throws NullPointerException;
 
     /**
      * 
@@ -41,7 +54,7 @@ public interface Post
      * 
      * @return this.ID_Post
      */
-    public int getIDPost();
+    public int getID();
 
     /**
      * 

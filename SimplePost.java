@@ -12,28 +12,19 @@ public class SimplePost implements Post
     private String Text;
     private Date DataCreazione;
     
-    public SimplePost(String Author,int ID )
+    public SimplePost(String Author,int ID, String Text ) throws IllegalArgumentException
     {
-        this(Author, ID, new Date());
+        this(Author, ID, new Date(),Text);
     }
-    public SimplePost(String Author,int ID, Date date)
+    public SimplePost(String Author,int ID, Date date,String txt) throws IllegalArgumentException
     {
+        if(txt.length() > 140)throw new IllegalArgumentException();
         this.ID_Post=ID;
         this.Author=Author;
-        this.Text= new String();
+        this.Text= new String(txt);
         this.DataCreazione=date;
     }
 
-    @Override
-    public boolean changeText(String newText) throws NullPointerException, IllegalArgumentException 
-    {
-        if(newText == null) throw new NullPointerException("NewText = Null");
-        if(newText.length()>140) throw new IllegalArgumentException("NewText.leght() > 140");
-
-        this.Text = newText;
-
-        return true;
-    }
 
     @Override
     public String getText() {
@@ -47,7 +38,7 @@ public class SimplePost implements Post
     }
 
     @Override
-    public int getIDPost() {
+    public int getID() {
         return this.ID_Post;
     }
 
@@ -60,5 +51,31 @@ public class SimplePost implements Post
     public Date getDate() {
         return this.DataCreazione;
     }
-    
+
+    @Override
+    public Post createNewPost(String Author, String Text, int ID)throws NullPointerException, IllegalArgumentException {
+            if (Author.equals(null)) throw new NullPointerException();
+            if (Text.length() > 140) throw new IllegalArgumentException("Testo troppo lungo");
+        return new SimplePost(Author, ID,Text);
+    }
+
+    @Override
+    public Post cloneThis() {
+        return new SimplePost(this.Author, this.ID_Post,this.DataCreazione, this.Text);
+    }
+
+    @Override
+    public boolean isEqual(Post p) throws NullPointerException {
+        if(p == null)throw new NullPointerException();
+
+
+        if(!p.getAuthor().equals(this.Author)) return false;
+        if(!p.getDate().equals(this.DataCreazione))return false;
+        if(!p.getText().equals(this.Text))return false;
+        if(p.getID()!=this.ID_Post)return false;
+
+
+        return true;
+    }
+
 }
