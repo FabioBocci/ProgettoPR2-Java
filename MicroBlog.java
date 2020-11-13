@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,27 +10,21 @@ import java.util.TreeMap;
 
 public class MicroBlog implements SocialNetwork {
 /**
- *          AF: <ListOfUser, ListOfPost , MapOfFollowers , NumOfFollowers >
- *          RI: ListOfUser != Null AND ListOfPost != Null AND MapOfFollowers != Null AND NumOfFollowers != Null AND
- *              (forall Post in ListOfPost => Post != Null) AND
- *              (forall User in ListOfUser => User != Null) AND
- *              (forall pst_1, pst_2 in ListOfPost | pst_1 != pst_2 => pst_1.getID() !=pst_2.getID()) AND
- *              (forall usr_1,usr_2 in ListOfUser | usr_1 != usr_2 => usr_1.Name != usr_2.Name)
- *              (forall User in ListOfUser => MapOfFollowers.get(User) != Null AND NumOfFollowers.get(User)>=0 AND MapOfFollowers.get(User).size() == NumOfFollowers.get(User)) AND
+ *          AF: <MapOfFollowers , MapOfLikes > t.c. MapOfFollowers = Map< User , SetOfUsers > AND MapOfLikes = Map< Post , SetOfUsers >
+ *          RI: MapOfFollowers != Null AND MapOfLikes != Null AND
+ *              (forall User in MapOfFollowers.getkeyset() => MapOfFollowers.get(User) != Null AND MapOfFollowers.get(User).contains(User) == False )
+ *              (forall Post in MapOfLikes.getkeyset() => MapOfLikes.get(Post) != Null AND MapOfLikes.get(Post) == Set of the user that assigned a like to the post Post )
+ *              
  */
 
-    private List<String> ListOfUser;
-    private List<Post> ListOfPost;
     private Map<String, Set<String>> MapOfFollowers;
-    private Map<String , Integer> NumOfFollowers;
+    private Map<Post, Set<String>> MapOfLikes;
 
 
     public MicroBlog()
     {
-        this.ListOfPost = new ArrayList<>();
-        this.ListOfUser = new ArrayList<>();
         this.MapOfFollowers = new HashMap<>();
-        this.NumOfFollowers = new HashMap<>();
+        this.MapOfLikes = new HashMap<>();
     }
 
     @Override
@@ -46,7 +39,7 @@ public class MicroBlog implements SocialNetwork {
         }
         Map<String , Set<String>> map = new HashMap<>();
 
-        for( String author : authorSet)
+        for(String author : authorSet)
         {
             if(MapOfFollowers.keySet().contains(author))
             {
@@ -60,11 +53,11 @@ public class MicroBlog implements SocialNetwork {
     @Override
     public List<String> influencers() throws EmptyNetworkException              
     {
-        if(ListOfUser.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(MapOfFollowers.isEmpty()) throw new EmptyNetworkException("Network Empty");
 
-        ValueComparator bvc = new ValueComparator(NumOfFollowers);
-        TreeMap<String,Integer> sorted_map_by_value = new TreeMap<String, Integer>(bvc);    //la classe TreeMap esegue un ordinamento delle chiavi tramite il Comparator passato alla creazione
-        sorted_map_by_value.putAll(NumOfFollowers);         //all'inserimento verranno tutti ordinati
+        SetValueComparato bvc = new SetValueComparato(MapOfFollowers);
+        TreeMap<String,Set<String>> sorted_map_by_value = new TreeMap<String, Set<String>>(bvc);    //la classe TreeMap esegue un ordinamento delle chiavi tramite il Comparator passato alla creazione
+        sorted_map_by_value.putAll(MapOfFollowers);         //all'inserimento verranno tutti ordinati
 
        return new ArrayList<String>(sorted_map_by_value.keySet());
     }
@@ -72,21 +65,20 @@ public class MicroBlog implements SocialNetwork {
     @Override
     public Set<String> getMentionedUsers() throws EmptyNetworkException 
     {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network vuoto ");
+        if(MapOfFollowers.isEmpty() || MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
 
+        Set<String> ListOfUser = MapOfFollowers.keySet();
         Set<String> mentionedUser = new HashSet<>();
         boolean found = false;
-        int i=0;
+
         for (String user : ListOfUser) 
         {
             if(!mentionedUser.contains(user))
             {
-                found= false;
-                i=0;
-                while(!found && i < ListOfPost.size())
+                found = false;
+                for(Post ps : MapOfLikes.keySet())
                 {
-                    found=ListOfPost.get(i).checkWord(user);
-                    i++;
+                    if(ps.checkWord(user)) found = true;
                 }
                 if(found) mentionedUser.add(user);
             }
@@ -97,12 +89,14 @@ public class MicroBlog implements SocialNetwork {
     @Override
     public Set<String> getMentionedUsers(List<Post> ps) throws EmptyNetworkException, NullPointerException 
     {
-        if(this.ListOfUser.isEmpty()) throw new EmptyNetworkException("Network Empty");
-        if(ps== null)throw new NullPointerException("getMentionedUsers got a Null");
+        if(MapOfFollowers.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(ps == null)throw new NullPointerException("getMentionedUsers got a Null");
+
         Set<String> mentionedUsers = new HashSet<>();
         int i;
         boolean found;
-        for(String User : ListOfUser)
+
+        for(String User : MapOfFollowers.keySet())
         {
             if(!mentionedUsers.contains(User))
             {
@@ -123,10 +117,12 @@ public class MicroBlog implements SocialNetwork {
     @Override
     public List<Post> writtenBy(String username) throws EmptyNetworkException, NullPointerException 
     {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(username == null) throw new NullPointerException();
+
         List<Post> ps = new ArrayList<>();
-        for (Post p : ListOfPost)
+
+        for (Post p : MapOfLikes.keySet())
         {
             if(p.getAuthor()==username)
                 ps.add(p);
@@ -139,9 +135,11 @@ public class MicroBlog implements SocialNetwork {
     public List<Post> writtenBy(List<Post> ps, String username) throws NullPointerException 
     {
         if(ps == null || username == null) throw new NullPointerException();
+
         List<Post> p = new ArrayList<>();
+
         for (Post post : ps) {
-            if(post.getAuthor()==username)
+            if(post.getAuthor() == username)
                 p.add(post);
         }
         return p;
@@ -150,16 +148,19 @@ public class MicroBlog implements SocialNetwork {
     @Override
     public List<Post> containing(List<String> words) throws EmptyNetworkException, NullPointerException 
     {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network empty");
+        if(MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(words == null) throw new NullPointerException();
-        List<Post> tempList = new ArrayList<>(ListOfPost);
-        List<Post> returnList = new ArrayList<>(ListOfPost);
+
+        List<Post> tempList = new ArrayList<>(MapOfLikes.keySet());
+        List<Post> returnList = new ArrayList<>(MapOfLikes.keySet());
         int i;
         boolean found;
 
-        for (String word : words) {
+        for (String word : words) 
+        {
             i=0;
             found=false;
+
             while(!found && i<tempList.size())
             {
                 if(tempList.get(i).checkWord(word))
@@ -175,85 +176,45 @@ public class MicroBlog implements SocialNetwork {
     }
 
     @Override
-    public List<Post> betweenDate(Date before, Date post) throws EmptyNetworkException, IllegalArgumentException,NullPointerException {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Empty Network");
-        if(before == null || post == null)throw new NullPointerException();
-        if(before.getTime() > post.getTime()) throw new IllegalArgumentException("Date sbagliate");
-
-        List<Post> lstPostDate = new ArrayList<>();
-        for(Post pst : ListOfPost)
-        {
-            if(before.getTime()<pst.getDate().getTime() && pst.getDate().getTime()< post.getTime())
-                lstPostDate.add(pst);
-        }
-        return lstPostDate;
-    }
-
-    @Override
-    public List<Post> postDate(Date before) throws EmptyNetworkException, NullPointerException {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Empty Network");
-        if(before == null) throw new NullPointerException();
-
-        List<Post> lstPostDate = new ArrayList<>();
-        for(Post pst : ListOfPost)
-        {
-            if(before.getTime()<pst.getDate().getTime())
-                lstPostDate.add(pst);
-        }
-        return lstPostDate;
-
-    }
-
-    @Override
     public List<Post> removePosts(List<Post> ps) throws EmptyNetworkException, NullPointerException 
     {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
-        if(ps== null) throw new NullPointerException();
-        boolean allfound = false;
-        if(ListOfPost.containsAll(ps)) allfound= true;
-
-        if(allfound)
+        if(MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(ps == null) throw new NullPointerException();
+        
+        for(Post p : ps)
         {
-            this.ListOfPost.removeAll(ps);
-            return new ArrayList<>();
-        }
-        else{
-
-            for(Post p : ps)
+            if(MapOfLikes.keySet().contains(p))
             {
-                if(ListOfPost.contains(p))
-                {
-                    ListOfPost.remove(p);
-                    ps.remove(p);
-                }
+                MapOfLikes.remove(p);
+                ps.remove(p);
             }
-            return ps;
         }
+        return ps;
 
     }
 
     @Override
     public boolean removePost(Post ps) throws EmptyNetworkException, NullPointerException {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException();
+        if(MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(ps == null) throw new NullPointerException();
 
-        if(ListOfPost.remove(ps))
+        if(MapOfLikes.remove(ps) != null)
             return true;
         return false;
     }
 
     @Override
     public boolean removePostsbyAuthor(String username)throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(username == null) throw new NullPointerException();
         boolean foundOne = false;
 
-        for(Post pst : ListOfPost)
+        for(Post pst : MapOfLikes.keySet())
         {
             if(pst.getAuthor()==username)
             {
                 foundOne=true;
-                ListOfPost.remove(pst);
+                MapOfLikes.remove(pst);
             }
         }
         if(foundOne)
@@ -264,7 +225,7 @@ public class MicroBlog implements SocialNetwork {
 
     @Override
     public Set<String> followers(String username)throws EmptyNetworkException, NullPointerException, IllegalArgumentException {
-        if(ListOfPost.isEmpty()) throw new EmptyNetworkException("Network Empty");
+        if(MapOfLikes.isEmpty()) throw new EmptyNetworkException("Network Empty");
         if(username == null) throw new NullPointerException();
         if(!MapOfFollowers.keySet().contains(username)) throw new IllegalArgumentException("user non presente");
 
@@ -275,15 +236,14 @@ public class MicroBlog implements SocialNetwork {
     public boolean addFollower(String author, String username) throws IllegalArgumentException, NullPointerException {
         if(author == null || username == null) throw new  NullPointerException();
         if(author.equals(username)) throw new IllegalArgumentException("Nomi uguali, un utente non puo auto-seguirsi");
-        if(!ListOfUser.contains(author)) throw new IllegalArgumentException("Autore non presente");
+        if(!MapOfFollowers.keySet().contains(author)) throw new IllegalArgumentException("Autore non presente");
 
-        if(!ListOfUser.contains(username)) createUser(username); //creo l'utente se non gia presente
+        if(!MapOfFollowers.keySet().contains(username)) createUser(username); //creo l'utente se non gia presente
 
         if(MapOfFollowers.get(author).contains(username))
             return false;
         
         MapOfFollowers.get(author).add(username);
-        NumOfFollowers.put(author, NumOfFollowers.get(author)+1);
         return true;
     }
 
@@ -291,17 +251,18 @@ public class MicroBlog implements SocialNetwork {
     public Post createPost(String author, String Text) throws IllegalArgumentException, NullPointerException {
         if(author == null || Text == null) throw new NullPointerException();
         if(Text.length()>140) throw new IllegalArgumentException("Lungezza del testo troppo lunga");
+
         Set<Integer> setID = new HashSet<>();
         int ID = 1;
-        for(Post ps : ListOfPost)
+
+        for(Post ps : MapOfLikes.keySet())
         {
-            setID.add(ps.getIDPost());
+            setID.add(ps.getID());
         }
         
-        while (setID.contains(ID)) ID = (int) Math.random();
+        while (setID.contains(ID)) ID = (int) Math.random()*1000;
 
-        Post pst = new SimplePost(author, ID);
-        pst.changeText(Text);
+        Post pst = new SimplePost(author, ID,Text);
 
         return pst;
     }
@@ -310,17 +271,18 @@ public class MicroBlog implements SocialNetwork {
     public void publicatePost(Post ps) throws NullPointerException, IllegalArgumentException 
     {
         if(ps == null) throw new NullPointerException();
-        if(ListOfPost.contains(ps)) throw new  IllegalArgumentException("Post gia presente");
+        if(MapOfLikes.keySet().contains(ps)) throw new  IllegalArgumentException("Post gia presente");
+
         Set<Integer> setID = new HashSet<>();
      
-        for(Post pst : ListOfPost)
+        for(Post pst : MapOfLikes.keySet())
         {
-            setID.add(pst.getIDPost());
+            setID.add(pst.getID());
         }
         
-        if(setID.contains(ps.getIDPost())) throw new  IllegalArgumentException("ID del post gia presente");
+        if(setID.contains(ps.getID())) throw new  IllegalArgumentException("ID del post gia presente");
 
-        ListOfPost.add(ps);
+        MapOfLikes.put(ps,new HashSet<>());
 
     }
 
@@ -328,38 +290,41 @@ public class MicroBlog implements SocialNetwork {
     public void createUser(String User) throws NullPointerException, IllegalArgumentException 
     {
         if(User == null) throw new NullPointerException();
-        if(ListOfUser.contains(User)) throw new IllegalArgumentException("Utente gia presente");
+        if(MapOfFollowers.keySet().contains(User)) throw new IllegalArgumentException("Utente gia presente");
 
-        ListOfUser.add(User);
         MapOfFollowers.put(User, new HashSet<String>());
-        NumOfFollowers.put(User,0);
 
+    }
 
+    @Override
+    public boolean addLike(Post ps, String user) throws NullPointerException, IllegalArgumentException 
+    {
+        if(ps == null ) throw new NullPointerException();
+        if(!MapOfLikes.keySet().contains(ps)) throw new IllegalArgumentException("Post non all'interno del SocialNetwork");
+        if(MapOfLikes.get(ps).contains(user)) return false;
+
+        MapOfLikes.get(ps).add(user);
+
+        return true;
     }
     
 }
 
-class ValueComparator implements Comparator<String> {
-    Map<String, Integer> base;
+ class SetValueComparato implements Comparator<String> {
+    Map<String , Set<String>> bs;
 
-    public ValueComparator(Map<String, Integer> base) {
-        this.base = base;
+    public SetValueComparato(Map<String,Set<String>> base)
+    {
+        this.bs=base;
     }
 
-    public int compare(String a, String b) {
-        if (base.get(a) >= base.get(b)) {
+    public int compare(String a , String b)
+    {
+        if (bs.get(a).size() >= bs.get(b).size()) {
             return 1;
         } else {
             return -1;
         }
+
     }
-}
-//era possibile farlo anche con MapOfFollowers <String , Set<String>> nello stesso modo solo che nella compare doveva essere modificata cosi:
-/**
- * public int compare(String a, String b) {
-        if (base.get(a).size() >= base.get(b).size()) {
-            return 1;
-        } else {
-            return -1;
-        }
- */
+ }
