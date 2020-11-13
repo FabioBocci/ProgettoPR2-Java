@@ -4,7 +4,7 @@ import java.util.Set;
 
 public interface SocialNetwork {
 /**
- *              Overview: gestore di una rete sociale, contenenti i Post degli utenti. la lista delle persone che seguono ogni utente.....
+ *              Overview: gestore di una rete sociale, con una lista di utenti e di post, i quali utenti possono seguire gli altri (un utente non puo seguire se stesso) e mettere like ai post (ogni post non puo avere 2 like dallo stesso utente) 
  *              TE: <ListOfPost , ListOfUser> AND f : user -> FollowersList AND numLikes = g : Post -> Integer t.c.
  *                  (user ∈ ListOfUser => f(user) = FollowersList ⊂ ListOfUser) AND
  *                  ListOfPost != Null AND ListOfUser != Null AND 
@@ -14,8 +14,7 @@ public interface SocialNetwork {
  *                  (forall Us1,Us2 in ListOfUser | Us1 != Us2 => Us1.Name != Us2.Name)
  *                  (forall user  in ListOfUser => f(user) != Null)
  *                  (forall Post in ListOfPost => numLikes(Post) >= 0 AND numLikes(Post) <= #f(Post.author))
- * 
- * 
+ *
  */
     //Restituisce una rete sociale derivata dalla lista dei post
     /**
