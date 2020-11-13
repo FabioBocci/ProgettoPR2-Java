@@ -1,4 +1,3 @@
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -6,7 +5,7 @@ import java.util.Set;
 public interface SocialNetwork {
 /**
  *              Overview: gestore di una rete sociale, contenenti i Post degli utenti. la lista delle persone che seguono ogni utente.....
- *              TE: <ListOfPost , ListOfUser> AND f : user -> FollowersList t.c.
+ *              TE: <ListOfPost , ListOfUser> AND f : user -> FollowersList AND numLikes = g : Post -> Integer t.c.
  *                  (user ∈ ListOfUser => f(user) = FollowersList ⊂ ListOfUser) AND
  *                  ListOfPost != Null AND ListOfUser != Null AND 
  *                  (ListOfPost = {Post_1, Post_2, Post_3.......Post_n}) AND
@@ -14,6 +13,7 @@ public interface SocialNetwork {
  *                  (forall ps1,ps2 in ListOfPost | ps1 != ps2 => ps1.ID != ps2.ID)
  *                  (forall Us1,Us2 in ListOfUser | Us1 != Us2 => Us1.Name != Us2.Name)
  *                  (forall user  in ListOfUser => f(user) != Null)
+ *                  (forall Post in ListOfPost => numLikes(Post) >= 0 AND numLikes(Post) <= #f(Post.author))
  * 
  * 
  */
@@ -78,20 +78,6 @@ public interface SocialNetwork {
      * @throws NullPointerException if words == Null
      */
     public List<Post> containing(List<String> words)throws EmptyNetworkException,NullPointerException;
-
-    //restituisce una lsita dei post che sono stati pubblicati fra le 2 date
-    /**
-     * @param before != Null
-     * @param post  != Null
-     * @return ListOfPostBetweenDate ⊂ ListOfPost t.c. (forall Post ps in ListOfPostBetweenDate => (before <= ps.dataCreazione <= post ) )
-     * @throws EmptyNetworkException if ListOfPost.isEmpty()
-     * @throws IllegalArgumentException if before > post
-     * @throws NullPointerException if before == null or post == null
-     */
-    public List<Post> betweenDate(Date before, Date post)throws EmptyNetworkException,IllegalArgumentException,NullPointerException;
-
-    //restituisce una lista dei post che sono stati pubblicati dopo la data in input
-    public List<Post> postDate(Date before)throws EmptyNetworkException,NullPointerException;
 
     //rimuove tutti i post ps all'interno di this se presenti
     /**
@@ -176,6 +162,16 @@ public interface SocialNetwork {
      */
     public void createUser(String User)throws NullPointerException, IllegalArgumentException;
 
+    /**
+     * @param ps != Null AND ListOfPost.contains(ps) == True
+     * @param user != Null AND ListOfUser.cotains(user) == True
+     * @modify this.numLikes(ps)
+     * @effects POST(numLikes(ps)) = PRE(numLikes(ps)) + 1 if the user hadn't already liked it previously else POST(numLikes(ps)) = PRE(numLikes(ps))
+     * @return true if the user hadn't already liked it previously else False
+     * @throws NullPointerException if ps == Null OR user == Null
+     * @throws IllegalArgumentException if ListOfUser.cotains(user) == False
+     */
+    public boolean addLike(Post ps, String user)throws NullPointerException,IllegalArgumentException;
 }
 
 
