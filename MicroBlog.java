@@ -168,6 +168,7 @@ public class MicroBlog implements SocialNetwork {
                     found=true;
                     tempList.remove(i);
                 }
+                i++;
             }
         }
         returnList.removeAll(tempList);
@@ -251,17 +252,22 @@ public class MicroBlog implements SocialNetwork {
     public Post createPost(String author, String Text) throws IllegalArgumentException, NullPointerException {
         if(author == null || Text == null) throw new NullPointerException();
         if(Text.length()>140) throw new IllegalArgumentException("Lungezza del testo troppo lunga");
-
         Set<Integer> setID = new HashSet<>();
         int ID = 1;
-
+        int range= 1000;
+        
         for(Post ps : MapOfLikes.keySet())
         {
             setID.add(ps.getID());
         }
         
-        while (setID.contains(ID)) ID = (int) Math.random()*1000;
-
+        while (setID.contains(ID))
+        {
+            ID = (int) (Math.random()*range);
+            //System.out.println("ID FOUND: "+ID);
+        } 
+            
+        
         Post pst = new SimplePost(author, ID,Text);
 
         return pst;
@@ -321,9 +327,9 @@ public class MicroBlog implements SocialNetwork {
     public int compare(String a , String b)
     {
         if (bs.get(a).size() >= bs.get(b).size()) {
-            return 1;
-        } else {
             return -1;
+        } else {
+            return 1;
         }
 
     }
