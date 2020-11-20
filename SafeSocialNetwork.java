@@ -8,13 +8,17 @@ import java.util.TreeMap;
 
 public class SafeSocialNetwork implements ProtectedSocialNetwork {
 /**
- *              RI:
- *              AF:
+ *              AF: <MapOfFollowers , MapOfLikes, BannedWords > t.c. MapOfFollowers = Map< User , SetOfUsers > AND MapOfLikes = Map< Post , SetOfUsers >
+ *              RI: MapOfFollowers != Null AND MapOfLikes != Null AND BannedWords != Null AND
+ *              (forall User in MapOfFollowers.getkeyset() => MapOfFollowers.get(User) != Null AND MapOfFollowers.get(User).contains(User) == False )
+ *              (forall Post in MapOfLikes.getkeyset() => MapOfLikes.get(Post) != Null AND MapOfLikes.get(Post) == Set of the user that assigned a like to the post Post )
+ *              
+ *              (forall Post in MapOfLikes.getKeyset() => (not EXISTS word in BannedWords | Post.getText().contains(word) == True))
  */
 
     private Map<String, Set<String>> MapOfFollowers;
     private Map<Post, Set<String>> MapOfLikes;
-    //private Map<String , Set<Post>> BannedWordsMap;
+    //private Map<String , Set<Post>> BannedWordsMap;       //nel caso volessimo salvare i Post rimossi per una colpa di una parola
     private Set<String> BannedWords;
 
 
@@ -295,33 +299,93 @@ public class SafeSocialNetwork implements ProtectedSocialNetwork {
 
     @Override
     public List<Post> addBannedWord(String Word) throws NullPointerException, DoubleWordException {
-        // TODO Auto-generated method stub
+        if(Word == null) throw new NullPointerException();
+        if(BannedWords.contains(Word))throw new DoubleWordException(Word);
+        BannedWords.add(Word);
         return checkRI();
     }
 
     @Override
     public boolean removeBannedWord(String Word) throws NullPointerException, WordDontFoundException {
-        // TODO Auto-generated method stub
-        return false;
+        if(Word == null) throw new NullPointerException();
+        if(!BannedWords.contains(Word)) throw new WordDontFoundException(Word);
+        return BannedWords.remove(Word);
     }
 
     @Override
     public void publicatePost(Post ps) throws NullPointerException, IllegalArgumentException, IllegalWordsException {
-        // TODO Auto-generated method stub
+        if(ps == null) throw new NullPointerException();
+        if(MapOfLikes.keySet().contains(ps)) throw new  IllegalArgumentException("Post gia presente");
+
+        Set<Integer> setID = new HashSet<>();
+     
+        for(Post pst : MapOfLikes.keySet())
+        {
+            setID.add(pst.getID());
+        }
+        
+        if(setID.contains(ps.getID())) throw new  IllegalArgumentException("ID del post gia presente");
+
+        String testo = ps.getText();
+        boolean found=false;
+        int i=0;
+        ArrayList<String> tmp = new ArrayList<>(BannedWords);
+        while(i<BannedWords.size() && !found)
+        {
+            if(testo.contains(tmp.get(i)))
+                found=true;
+        }
+
+        if(found)
+        {
+            throw new IllegalWordsException();
+        }
+
+        MapOfLikes.put(ps,new HashSet<>());
 
     }
 
     @Override
     public Post createPost(String author, String Text) throws IllegalArgumentException, NullPointerException, IllegalWordsException {
-        // TODO Auto-generated method stub
-        return null;
+        if(author == null || Text == null) throw new NullPointerException();
+        if(Text.length()>140) throw new IllegalArgumentException("Lungezza del testo troppo lunga");
+        for(String word : BannedWords)
+        {
+            if(Text.contains(word)) throw new IllegalWordsException(word);
+        }
+        Set<Integer> setID = new HashSet<>();
+        int ID = 1;
+
+        for(Post ps : MapOfLikes.keySet())
+        {
+            setID.add(ps.getID());
+        }
+        
+        while (setID.contains(ID)) ID = (int) Math.random()*1000;
+
+        Post pst = new SimplePost(author, ID,Text);
+
+        return pst;
     }
 
     //controlla il Rep. Invariant
     //restituisce una lista di Post che non soddisfa più il RI, rimuovendoli da This.MapOfLikes.keySet()
     List<Post> checkRI()
     {
-        return null;
+        List<Post> PostBanned = new ArrayList<>();
+
+        for(String word : BannedWords)
+        {
+            for(Post p : MapOfLikes.keySet())
+            {
+                if(p.getText().contains(word))
+                {
+                    PostBanned.add(p);
+                    MapOfLikes.remove(p);
+                }
+            }
+        }
+        return PostBanned;
     }
     
 }
