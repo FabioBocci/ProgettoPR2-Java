@@ -162,6 +162,7 @@ public class SafeSocialNetwork implements ProtectedSocialNetwork {
                     found=true;
                     tempList.remove(i);
                 }
+                i++;
             }
         }
         returnList.removeAll(tempList);
@@ -338,7 +339,7 @@ public class SafeSocialNetwork implements ProtectedSocialNetwork {
 
         if(found)
         {
-            throw new IllegalWordsException();
+            throw new IllegalWordsException(tmp.get(i));
         }
 
         MapOfLikes.put(ps,new HashSet<>());
@@ -361,7 +362,7 @@ public class SafeSocialNetwork implements ProtectedSocialNetwork {
             setID.add(ps.getID());
         }
         
-        while (setID.contains(ID)) ID = (int) Math.random()*1000;
+        while (setID.contains(ID)) ID = (int) (Math.random()*1000);
 
         Post pst = new SimplePost(author, ID,Text);
 
@@ -381,9 +382,11 @@ public class SafeSocialNetwork implements ProtectedSocialNetwork {
                 if(p.getText().contains(word))
                 {
                     PostBanned.add(p);
-                    MapOfLikes.remove(p);
                 }
             }
+        }
+        for (Post post : PostBanned) {
+            MapOfLikes.remove(post);
         }
         return PostBanned;
     }
